@@ -340,6 +340,19 @@ export default function Home() {
           </p>
         </div>
       </div>
+      <div className=" text-center">
+        <a
+          href="https://www.weularity.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm cursor-pointer hover:text-gray-600"
+        >
+          <p>
+            Crafted with ❤️ by Weularity. All rights reserved. &copy;{" "}
+            {new Date().getFullYear()}
+          </p>
+        </a>
+      </div>
     </main>
   );
 }
