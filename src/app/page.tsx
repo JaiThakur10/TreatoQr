@@ -1,103 +1,345 @@
+"use client";
+
 import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
+import { ShoppingCart, Phone } from "lucide-react";
+
+type Product = {
+  id: number;
+  name: string;
+  slug: string;
+  image: string;
+  description: string;
+  details: string;
+  price: number;
+};
+
+type CartItem = {
+  product: Product;
+  quantity: number;
+};
+
+const products: Product[] = [
+  {
+    id: 1,
+    name: "Fruit Bowls",
+    slug: "fruit-bowls",
+    image: "/images/fruit-bowl.jpg",
+    description: "Fresh seasonal fruits served chilled.",
+    details: "Packed with vitamins and minerals. Served with honey and mint.",
+    price: 129.99,
+  },
+  {
+    id: 2,
+    name: "Sprouts",
+    slug: "sprouts",
+    image: "/images/sprouts.webp",
+    description: "Protein-packed healthy sprouts mix.",
+    details: "Made with moong, chana, and seasonal herbs.",
+    price: 89.5,
+  },
+  {
+    id: 3,
+    name: "Salads",
+    slug: "salads",
+    image: "/images/salad.jpg",
+    description: "Crisp veggies with homemade dressings.",
+    details: "Includes lettuce, carrots, cucumbers, and olive oil vinaigrette.",
+    price: 109.75,
+  },
+  {
+    id: 4,
+    name: "Thali",
+    slug: "thali",
+    image: "/images/thali.jpeg",
+    description: "A wholesome Indian meal combo.",
+    details: "Includes dal, sabzi, roti, rice, salad, and dessert.",
+    price: 179.0,
+  },
+];
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const cartRef = useRef<HTMLDivElement>(null);
+  const [addingItemId, setAddingItemId] = useState<number | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
+  // Add item or increase quantity
+  const addToCart = (product: Product) => {
+    setAddingItemId(product.id); // show adding indicator
+    setTimeout(() => {
+      setCart((prev) => {
+        const existingItem = prev.find(
+          (item) => item.product.id === product.id
+        );
+        if (existingItem) {
+          return prev.map((item) =>
+            item.product.id === product.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
+        } else {
+          return [...prev, { product, quantity: 1 }];
+        }
+      });
+
+      setIsCartOpen(true);
+      setAddingItemId(null); // remove adding indicator
+    }, 300); // small delay for user feedback
+  };
+
+  // Decrease quantity or remove item
+  const removeFromCart = (productId: number) => {
+    setCart((prev) => {
+      const existingIndex = prev.findIndex(
+        (item) => item.product.id === productId
+      );
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        if (updated[existingIndex].quantity > 1) {
+          updated[existingIndex].quantity -= 1;
+        } else {
+          updated.splice(existingIndex, 1);
+        }
+        return updated;
+      }
+      return prev;
+    });
+  };
+
+  // Calculate total price
+  const total = cart.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+
+  // Close cart on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (cartRef.current && !cartRef.current.contains(event.target as Node)) {
+        setIsCartOpen(false);
+      }
+    };
+
+    if (isCartOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isCartOpen]);
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-yellow-100 via-yellow-50 to-white text-gray-900 font-sans">
+      {/* Navbar */}
+      <nav className="bg-gradient-to-r from-red-600 via-yellow-400 to-red-600 shadow-md px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+        <h1 className="text-3xl font-extrabold text-white tracking-tight select-none">
+          Treato
+        </h1>
+        <div className="flex items-center space-x-5">
+          {/* Call Button */}
           <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="tel:+917051368588"
+            className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 transition-colors text-red-700 font-semibold px-4 py-2 rounded-full shadow-md shadow-yellow-300"
+            aria-label="Call Treato"
+          >
+            <Phone className="w-5 h-5" />
+            Call
+          </a>
+
+          {/* Cart Button */}
+          <button
+            onClick={() => setIsCartOpen((prev) => !prev)}
+            className="relative text-white hover:text-yellow-300 focus:outline-none"
+            aria-label="Toggle cart"
+          >
+            <ShoppingCart className="w-7 h-7" />
+            {cart.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-yellow-400 text-red-700 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-yellow-400">
+                {cart.reduce((acc, item) => acc + item.quantity, 0)}
+              </span>
+            )}
+          </button>
+        </div>
+      </nav>
+
+      {/* Cart Panel */}
+      <div
+        ref={cartRef}
+        className={`fixed right-0 top-0 w-80 h-full bg-white shadow-2xl p-5 border-l z-50 overflow-y-auto flex flex-col justify-between transform transition-transform duration-300 ${
+          isCartOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div>
+          <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-3">
+            <h2 className="text-2xl font-bold text-red-600 select-none flex items-center gap-2">
+              🛒 Your Cart
+            </h2>
+            <button
+              onClick={() => setIsCartOpen(false)}
+              className="text-red-500 text-3xl font-extrabold hover:text-red-700 transition-colors"
+              aria-label="Close cart"
+            >
+              &times;
+            </button>
+          </div>
+
+          {/* Empty Cart */}
+          {cart.length === 0 ? (
+            <div className="flex flex-col items-center mt-16 select-none">
+              <Image
+                src="/images/emptybag.jpg"
+                alt="Empty Cart"
+                width={150}
+                height={150}
+                className="mb-6"
+              />
+              <p className="text-gray-500 text-center italic text-lg">
+                Your cart is empty.
+              </p>
+            </div>
+          ) : (
+            <ul className="space-y-4">
+              {cart.map(({ product, quantity }) => (
+                <li
+                  key={product.id}
+                  className="flex justify-between items-center text-sm border-b border-gray-200 pb-2"
+                >
+                  {/* Product Image */}
+                  <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 mr-3 shadow-sm">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      width={56}
+                      height={56}
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-grow">
+                    <span className="font-medium text-gray-800 select-text">
+                      {product.name}
+                    </span>
+                    <p className="text-xs text-gray-500 select-text">
+                      {product.details}
+                    </p>
+                    <p className="text-xs text-gray-700 select-text mt-1">
+                      Quantity: {quantity}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end space-y-1">
+                    <span className="text-red-600 font-semibold">
+                      ₹{(product.price * quantity).toFixed(2)}
+                    </span>
+                    <button
+                      onClick={() => removeFromCart(product.id)}
+                      className="text-red-500 hover:text-red-700 font-bold transition-colors"
+                      aria-label={`Remove one ${product.name} from cart`}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Cart Footer */}
+        <div>
+          {cart.length > 0 && (
+            <>
+              <div className="mt-6 font-semibold text-lg text-right text-gray-900 select-text">
+                Total: ₹{total.toFixed(2)}
+              </div>
+              <Link
+                href={`https://wa.me/917051368588?text=${encodeURIComponent(
+                  `Hi! I'd like to order:\n` +
+                    cart
+                      .map(
+                        ({ product, quantity }) =>
+                          `• ${product.name} x${quantity} - ₹${(
+                            product.price * quantity
+                          ).toFixed(2)}`
+                      )
+                      .join("\n") +
+                    `\nTotal: ₹${total.toFixed(2)}`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <button
+                  className="mt-4 w-full bg-gradient-to-r from-red-600 via-yellow-400 to-red-600 hover:from-red-700 hover:via-yellow-500 hover:to-red-700 transition-colors text-white py-3 rounded-xl font-semibold shadow-md select-none"
+                  aria-label="Checkout on WhatsApp"
+                >
+                  Checkout on WhatsApp
+                </button>
+              </Link>
+            </>
+          )}
+
+          {/* Footer Text */}
+          {/* <p className="mt-8 text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-yellow-400 to-red-600 select-none">
+            Treato Refreshments & Food
+          </p> */}
+        </div>
+      </div>
+
+      {/* Product Grid */}
+      <div className="max-w-6xl mx-auto px-4 py-10 grid gap-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {products.map((item) => (
+          <div
+            key={item.id}
+            className="bg-white rounded-3xl shadow-lg overflow-hidden flex flex-col hover:shadow-2xl hover:-translate-y-1 transition-transform duration-300"
           >
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src={item.image}
+              alt={item.name}
+              width={400}
+              height={280}
+              className="w-full h-48 object-cover rounded-t-3xl"
+              priority
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <div className="p-6 flex flex-col justify-between flex-grow">
+              <div>
+                <h2 className="text-xl font-bold text-red-600 mb-2 select-text">
+                  {item.name}
+                </h2>
+                <p className="text-sm text-gray-700 mb-1 select-text">
+                  {item.description}
+                </p>
+                <p className="text-xs text-gray-500 select-text">
+                  {item.details}
+                </p>
+              </div>
+              <div className="flex justify-between items-center mt-5">
+                <span className="text-lg font-extrabold text-gray-900 select-text">
+                  ₹{item.price}
+                </span>
+                <button
+                  onClick={() => addToCart(item)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-md transition-colors select-none"
+                  aria-label={`Add ${item.name} to cart`}
+                  disabled={addingItemId === item.id}
+                >
+                  {addingItemId === item.id ? "Adding..." : "Add to Cart"}
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Footer Text (page bottom) */}
+      <div className="mt-10 p-4 ">
+        <div className="w-full flex justify-center">
+          <p className="text-center font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-yellow-400 to-red-600 select-none">
+            Treato Refreshments & Food
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }
