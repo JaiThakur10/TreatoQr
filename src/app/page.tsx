@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { ShoppingCart, Phone } from "lucide-react";
+import { GiShoppingBag } from "react-icons/gi";
+import { MdLocalPhone } from "react-icons/md";
 
 type Product = {
   id: number;
@@ -64,6 +65,25 @@ export default function Home() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartRef = useRef<HTMLDivElement>(null);
   const [addingItemId, setAddingItemId] = useState<number | null>(null);
+
+  const handleCheckout = () => {
+    const url = `https://wa.me/917051368588?text=${encodeURIComponent(
+      `Hi! I'd like to order:\n` +
+        cart
+          .map(
+            ({ product, quantity }) =>
+              `• ${product.name} x${quantity} - ₹${(
+                product.price * quantity
+              ).toFixed(2)}`
+          )
+          .join("\n") +
+        `\nTotal: ₹${total.toFixed(2)}`
+    )}`;
+    window.open(url, "_blank");
+    setTimeout(() => {
+      window.location.href = "/delivery";
+    }, 500); // delay so WhatsApp opens
+  };
 
   // Add item or increase quantity
   const addToCart = (product: Product) => {
@@ -147,7 +167,7 @@ export default function Home() {
             className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 transition-colors text-red-700 font-semibold px-4 py-2 rounded-full shadow-md shadow-yellow-300"
             aria-label="Call Treato"
           >
-            <Phone className="w-5 h-5" />
+            <MdLocalPhone className="w-5 h-5" />
             Call
           </a>
 
@@ -157,7 +177,7 @@ export default function Home() {
             className="relative text-white hover:text-yellow-300 focus:outline-none"
             aria-label="Toggle cart"
           >
-            <ShoppingCart className="w-7 h-7" />
+            <GiShoppingBag className="w-7 h-7" />
             {cart.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-yellow-400 text-red-700 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-yellow-400">
                 {cart.reduce((acc, item) => acc + item.quantity, 0)}
@@ -272,8 +292,8 @@ export default function Home() {
                 rel="noopener noreferrer"
               >
                 <button
+                  onClick={handleCheckout}
                   className="mt-4 w-full bg-gradient-to-r from-red-600 via-yellow-400 to-red-600 hover:from-red-700 hover:via-yellow-500 hover:to-red-700 transition-colors text-white py-3 rounded-xl font-semibold shadow-md select-none"
-                  aria-label="Checkout on WhatsApp"
                 >
                   Checkout on WhatsApp
                 </button>
