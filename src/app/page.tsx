@@ -98,6 +98,11 @@ export default function Home() {
   };
 
   const handleCheckout = () => {
+    if (!location) {
+      alert("Fetching your location. Please wait a moment and try again.");
+      return;
+    }
+
     const orderSummary = cart
       .map(
         ({ product, quantity }) =>
@@ -120,7 +125,7 @@ export default function Home() {
 
     setTimeout(() => {
       window.location.href = "/delivery";
-    }, 500); // Delay for WhatsApp
+    }, 500);
   };
 
   // Add item or increase quantity
