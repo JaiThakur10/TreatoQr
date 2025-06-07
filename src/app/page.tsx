@@ -65,24 +65,62 @@ export default function Home() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartRef = useRef<HTMLDivElement>(null);
   const [addingItemId, setAddingItemId] = useState<number | null>(null);
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  // Get client location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLocation({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          });
+        },
+        (err) => {
+          console.warn("Geolocation error:", err.message);
+        },
+        {
+          enableHighAccuracy: true, // Ask for GPS if available
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    }
+  }, []);
+
+  const getLocationLink = () => {
+    if (!location) return "Location not shared";
+    return `https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
+  };
 
   const handleCheckout = () => {
+    const orderSummary = cart
+      .map(
+        ({ product, quantity }) =>
+          `• ${product.name} x${quantity} - ₹${(
+            product.price * quantity
+          ).toFixed(2)}`
+      )
+      .join("\n");
+
+    const locationText = getLocationLink();
+    const message = `Hi! I'd like to order:\n\n${orderSummary}\n\nTotal: ₹${total.toFixed(
+      2
+    )}\n\nDelivery Location: ${locationText}`;
+
     const url = `https://wa.me/917051368588?text=${encodeURIComponent(
-      `Hi! I'd like to order:\n` +
-        cart
-          .map(
-            ({ product, quantity }) =>
-              `• ${product.name} x${quantity} - ₹${(
-                product.price * quantity
-              ).toFixed(2)}`
-          )
-          .join("\n") +
-        `\nTotal: ₹${total.toFixed(2)}`
+      message
     )}`;
+
     window.open(url, "_blank");
+
     setTimeout(() => {
       window.location.href = "/delivery";
-    }, 500); // delay so WhatsApp opens
+    }, 500); // Delay for WhatsApp
   };
 
   // Add item or increase quantity
@@ -276,7 +314,7 @@ export default function Home() {
                 Total: ₹{total.toFixed(2)}
               </div>
               <Link
-                href={`https://wa.me/917051368588?text=${encodeURIComponent(
+                href={`https://wa.me/919419192452?text=${encodeURIComponent(
                   `Hi! I'd like to order:\n` +
                     cart
                       .map(
@@ -306,6 +344,10 @@ export default function Home() {
             Treato Refreshments & Food
           </p> */}
         </div>
+      </div>
+
+      <div className="text-center text-2xl sm:text-3xl md:text-4xl font-bold text-red-600  px-6 py-4  max-w-xl mx-auto mt-6">
+        Whats in your mind today?
       </div>
 
       {/* Product Grid */}
