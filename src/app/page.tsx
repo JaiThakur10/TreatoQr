@@ -112,7 +112,7 @@ export default function Home() {
       2
     )}\n\nDelivery Location: ${locationText}`;
 
-    const url = `https://wa.me/917051368588?text=${encodeURIComponent(
+    const url = `https://wa.me/919419192452?text=${encodeURIComponent(
       message
     )}`;
 
